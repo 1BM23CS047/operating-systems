@@ -1,0 +1,111 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAX_BLOCKS 10    // Maximum number of blocks on disk
+#define MAX_FILES 5      // Maximum number of files
+
+// Structure to represent a file
+struct File {
+    char name[20];
+    int startingBlock;   // Starting block number
+    int size;            // Size of the file in number of blocks
+};
+
+// Array representing the disk, each element represents a block
+int disk[MAX_BLOCKS];
+
+// Array to store the files
+struct File files[MAX_FILES];
+int fileCount = 0;
+
+// Function to initialize the disk (all blocks are free initially)
+void initializeDisk() {
+    for (int i = 0; i < MAX_BLOCKS; i++) {
+        disk[i] = 0;   // 0 means the block is free
+    }
+}
+
+// Function to allocate space for a new file using sequential allocation
+int allocateFile(char *fileName, int fileSize) {
+    int i, j;
+   
+    // Check if the file size can be accommodated
+    for (i = 0; i < MAX_BLOCKS - fileSize + 1; i++) {
+        int canAllocate = 1;
+
+        // Check if all blocks in the sequence are free
+        for (j = 0; j < fileSize; j++) {
+            if (disk[i + j] != 0) {
+                canAllocate = 0;
+                break;
+            }
+        }
+
+        // If we can allocate, assign blocks to the file
+        if (canAllocate) {
+            // Allocate blocks to the file
+            for (j = 0; j < fileSize; j++) {
+                disk[i + j] = 1;   // 1 means the block is occupied
+            }
+
+            // Store the file information
+            struct File newFile;
+            strcpy(newFile.name, fileName);
+            newFile.startingBlock = i;
+            newFile.size = fileSize;
+            files[fileCount] = newFile;
+            fileCount++;
+            return 1;   // Allocation successful
+        }
+    }
+   
+    // If we reach here, it means we couldn't find enough free blocks
+    return 0;   // Allocation failed
+}
+
+// Function to display the current state of the disk
+void displayDisk() {
+    printf("Disk status:\n");
+    for (int i = 0; i < MAX_BLOCKS; i++) {
+        printf("Block %d: %s\n", i, disk[i] == 0 ? "Free" : "Occupied");
+    }
+}
+
+// Function to display the files allocated on the disk
+void displayFiles() {
+    printf("\nFiles allocated on the disk:\n");
+    for (int i = 0; i < fileCount; i++) {
+        printf("File: %s, Starting Block: %d, Size: %d blocks\n",
+               files[i].name, files[i].startingBlock, files[i].size);
+    }
+}
+
+int main() {
+    initializeDisk();
+   
+    // Example file allocation
+    if (allocateFile("file1.txt", 3)) {
+        printf("File 'file1.txt' allocated successfully.\n");
+    } else {
+        printf("File 'file1.txt' allocation failed.\n");
+    }
+
+    if (allocateFile("file2.txt", 4)) {
+        printf("File 'file2.txt' allocated successfully.\n");
+    } else {
+        printf("File 'file2.txt' allocation failed.\n");
+    }
+
+    if (allocateFile("file3.txt", 2)) {
+        printf("File 'file3.txt' allocated successfully.\n");
+    } else {
+        printf("File 'file3.txt' allocation failed.\n");
+    }
+
+    // Display disk status and file allocation details
+    displayDisk();
+    displayFiles();
+   
+    return 0;
+}
